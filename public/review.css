@@ -1,0 +1,22 @@
+.star-rating label {
+  font-size: 2rem;
+  color: #ccc !important;
+  cursor: pointer;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #f5a623 !important;
+}
+
+.star-rating input:checked ~ label {
+  color: #f5a623 !important;
+}
+.star-filled {
+    color: #C8602A;
+    font-size: 1.1rem;
+}
+.star-empty {
+    color: #ddd;
+    font-size: 1.1rem;
+}

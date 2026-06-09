@@ -1,0 +1,51 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-5 d-flex justify-content-center">
+
+  <div class="card shadow-sm p-4" style="width: 600px;">
+
+    <h3 class="mb-4 text-center">Edit Listing</h3>
+
+    <form action="/listings/<%= listing._id %>?_method=PUT" method="POST" class="row g-3 needs-validation" novalidate>
+
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" name="listing[title]" value="<%= listing.title %>" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="listing[description]" class="form-control" rows="3" required><%= listing.description %></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input type="text" name="listing[image][url]" value="<%= listing.image.url %>" class="form-control" >
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Price</label>
+          <input type="number" name="listing[price]" value="<%= listing.price %>" class="form-control" required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Country</label>
+          <input type="text" name="listing[country]" value="<%= listing.country %>" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input type="text" name="listing[location]" value="<%= listing.location %>" class="form-control" required>
+      </div>
+
+      <button class="btn btn-danger w-100 rounded-pill">
+        Update Listing
+      </button>
+
+    </form>
+<script src="/valid.js"></script>
+  </div>
+
+</div>

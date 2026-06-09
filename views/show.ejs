@@ -1,0 +1,132 @@
+<% layout("/layouts/boilerplate") %>
+<link href="/review.css"relation="stylesheet"></style>
+<div class="container mt-4">
+
+    <div class="card shadow-sm mx-auto" style="max-width: 700px;">
+
+        <img src="<%= data.image.url %>" 
+             class="card-img-top"
+             style="height: 350px; object-fit: cover;"
+             alt="listing image">
+
+        <div class="card-body">
+
+            <h2 class="card-title"><%= data.title %></h2>
+
+            <p class="card-text text-muted">
+                <%= data.description %>
+            </p>
+
+            <hr>
+
+            <p><b>Price:</b> ₹<%= data.price %></p>
+            <p><b>Location:</b> <%= data.location %></p>
+            <p><b>Country:</b> <%= data.country %></p>
+
+            <div class="d-flex gap-2 mt-3">
+
+                <a href="/listings/<%= data._id %>/edit" 
+                   class="btn btn-warning rounded-pill px-4 shadow-sm">
+                    Edit
+                </a>
+
+                <form action="/listings/<%= data._id %>?_method=DELETE" method="POST">
+                    <button class="btn btn-danger rounded-pill px-4 shadow-sm">
+                        Delete
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <hr>
+    <br>
+<div class="row mt-3">
+  <div class="col-md-8 offset-md-2">
+    <h4>Leave a Review</h4>
+    <form action="/listings/<%= data._id %>/reviews" method="POST">
+      <!-- Rating -->
+      
+<div class="mb-3">
+  <label class="form-label">Rating</label>
+  <div class="star-rating">
+    <input type="radio" id="s5" name="review[rating]" value="1"/>
+    <label for="s5">★</label>
+    <input type="radio" id="s4" name="review[rating]" value="2"/>
+    <label for="s4">★</label>
+    <input type="radio" id="s3" name="review[rating]" value="3"/>
+    <label for="s3">★</label>
+    <input type="radio" id="s2" name="review[rating]" value="4"/>
+    <label for="s2">★</label>
+    <input type="radio" id="s1" name="review[rating]" value="5"/>
+    <label for="s1">★</label>
+  </div>
+</div>
+      <!-- Comment -->
+      <div class="mb-3">
+        <label for="comment" class="form-label">Comment</label>
+        <textarea
+          name="review[comment]"
+          id="comment"
+          class="form-control"
+          rows="4"
+          placeholder="Share your experience..."
+          required
+        ></textarea>
+      </div>
+      <!-- Created At (auto-filled) -->
+      <input type="hidden" name="review[createdAt]" id="createdAt"/>
+      <button type="submit" class="btn btn-danger">Post Review</button>
+
+    </form>
+  </div>
+</div>
+<hr/>
+<!--this is our reviews view section-->
+<h4 class="mb-4" style="font-family: 'DM Serif Display', serif; font-size: 1.5rem;">Guest Reviews</h4>
+
+<% if (data.reviews.length === 0) { %>
+    <div class="text-center py-4" style="color: #9a9a9a; border: 1px dashed #ddd; border-radius: 12px;">
+        <p class="mb-0">✦ No reviews yet — be the first to share your experience!</p>
+    </div>
+<% } else { %>
+    <div class="row g-3">
+        <% for (let review of data.reviews) { %>
+            <div class="col-md-6">
+                <div class="p-4 h-100" style="
+                    background: #fff;
+                    border: 1px solid #e8e0d8;
+                    border-radius: 14px;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+                ">
+                    <!-- Stars -->
+                    <div class="mb-2">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                            <span class="color: <%= i <= review.rating ? '#C8602A' : '#ddd' %>; font-size : 1.1rem">★</span>
+                        <% } %>
+                        <span class="ms-2" style="font-size: 0.8rem; color: #999;"><%= review.rating %> / 5</span>
+                    </div>
+
+                    <!-- Comment -->
+                    <p class="mb-3" style="font-size: 0.92rem; color: #2a2a2a; line-height: 1.6;">
+                        "<%= review.comment %>"
+                    </p>
+
+                    <!-- Footer -->
+                    <div style="font-size: 0.75rem; color: #aaa; border-top: 1px solid #f0ece8; padding-top: 0.6rem;">
+                        📅 <%= new Date(review.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) %>
+                    </div>
+                   <form action="/listings/<%= data._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+                    <br> 
+    <button class="btn btn-sm btn-danger">Delete</button>
+</form>
+                </div>
+            </div>
+        <% } %>
+
+    </div>
+<% } %>
+<script>
+  document.getElementById("createdAt").value = new Date().toISOString();
+</script>
+</div>

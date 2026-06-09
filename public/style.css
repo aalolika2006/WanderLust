@@ -1,0 +1,158 @@
+/* General */
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f8f9fa;
+}
+.main-container {
+    min-height: 80vh;
+}
+
+/* Navbar */
+
+.navbar {
+    background-color: white !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.navbar {
+    padding: 0.3rem 1rem !important;
+}
+.navbar .container {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fe424d !important;
+}
+
+.nav-link {
+    font-weight: 500;
+}
+.navbar-collapse {
+    align-items: center;
+}
+.nav-link:hover {
+    color: #fe424d !important;
+}
+
+/* Listing Cards */
+
+.listing-card {
+    border: none !important;
+    border-radius: 1rem !important;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: white;
+    margin-bottom: 2rem;
+}
+
+.listing-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+.search-form{
+    width: 320px;
+    display: flex;
+    align-items: center;
+}
+
+.search-form input{
+    border-radius: 50px;
+}
+
+.search-form button{
+    border-radius: 50px;
+}
+.card-img-top {
+    height: 18rem;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-title {
+    font-weight: 700;
+}
+
+.card-text {
+    color: #555;
+}
+
+/* Buttons */
+
+.btn-primary,
+.btn-danger {
+    border-radius: 10px;
+}
+
+.btn-danger {
+    background-color: #fe424d;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #e63946;
+}
+.listing-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+}
+input,
+textarea {
+    border-radius: 10px !important;
+}
+
+/* Show Page */
+
+.show-img {
+    width: 100%;
+    height: 450px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.show-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+}
+
+/* Footer */
+
+footer {
+    margin-top: 5rem;
+}
+
+footer a {
+    transition: all 0.3s;
+}
+
+footer a:hover {
+    color: #fe424d !important;
+}
+
+/* Search Box */
+
+.search-box {
+    border-radius: 30px;
+}
+
+.search-btn {
+    border-radius: 30px;
+}
+
+/* Responsive */
+@media(max-width:992px){
+    .search-form{
+        width: 100%;
+        margin-top: 10px;
+    }
+}

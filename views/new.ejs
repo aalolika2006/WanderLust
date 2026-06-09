@@ -1,0 +1,51 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="container mt-5 d-flex justify-content-center">
+
+  <div class="card shadow-sm p-4" style="width: 600px;">
+
+    <h3 class="mb-4 text-center">Add New Listing</h3>
+
+    <form action="/listings" method="POST" class="row g-3 needs-validation" novalidate>
+
+      <div class="mb-3">
+        <label class="form-label">Title</label>
+       
+        <input type="text" name="listings[title]" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="listings[description]" class="form-control" rows="3" required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input type="text" name="listings[image][url]" class="form-control">
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Price</label>
+          <input type="number" name="listings[price]" class="form-control" required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Country</label>
+          <input type="text" name="listings[country]" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input type="text" name="listings[location]" class="form-control" required>
+      </div>
+
+      <button class="btn btn-success w-100 rounded-pill">
+        Add Listing
+      </button>
+
+    </form>
+<script src="/valid.js"></script>
+  </div>
+</div>
