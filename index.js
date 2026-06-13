@@ -11,6 +11,23 @@ const data=require("./init/sample.js");
 const app = express();
 // Set EJS as view engine
 app.set("view engine", "ejs");
+//require passport
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+//require the user model 
+const User = require("./models/user.js");
+const session = require("express-session");
+//this allows the user to not do multiple times login in the same website
+app.use(session({
+    secret: "mysupersecretcode",
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());//Passport ko activate karta hai.
+app.use(passport.session());//Session se login state maintain karta hai.
+passport.use(new LocalStrategy(User.authenticate()));//Username/password verify karta hai.
+passport.serializeUser(User.serializeUser());//User ID ko session me store karta hai.serializeUser() stores the user's ID in the session after login
+passport.deserializeUser(User.deserializeUser());//Session wali ID se user object nikalta hai.deserializeUser() retrieves the complete user information from the database using that ID on subsequent requests.
 const ExpressError = require("./utils/ExpressError");//express error throw
 app.set("views", path.join(__dirname, "views"));
 //“Serve all files inside the public folder directly to the browser.”
@@ -26,6 +43,8 @@ app.use(methodOverride("_method"));
 //It adds support for layout system in EJS
 const ejsMate = require("ejs-mate");
 app.engine("ejs",ejsMate);
+const cookieParser = require("cookie-parser");
+app.use(cookieParser("mySecretKey"));//this is used for signed cookies
 //Joi is responsible for client side validation(validating the input before it reaches the db)
 const Joi=require("joi");
 //requiring both the validations
@@ -43,7 +62,43 @@ app.listen(port,(req,res)=>{
 app.get("/",(req,res)=>{
     res.send("I a root !");
 })
-
+//signup route(get request)
+app.get("/signup",(req,res)=>{
+    res.render("users.ejs");
+})
+//login route(get request)
+app.get("/login",(req,res)=>{
+    res.render("login.ejs");
+})
+//signup route(post request)
+app.post("/signup",async(req,res)=>{
+    try{
+let{username,email,password}=req.body;
+const newuser=new User({email,username})
+let registered=await User.register(newuser,password);//register used becoz-I am using passport-local-mongoose. The register() method automatically hashes the password using bcrypt, stores the hash and salt securely, and then saves the user. If I used save(), I would need to manually hash the password before storing it.
+console.log(registered);
+ res.render("welcome.ejs",{
+            username: registered.username
+        });
+    }
+    catch(err){
+    res.render("users.ejs", {
+        error: err.message
+    });
+}
+})
+app.post(
+    "/login",
+    passport.authenticate("local", {
+        failureRedirect: "/login"
+    }),
+    (req, res) => {
+        res.render("welcome.ejs", {
+            username: req.user.username
+        });
+    }
+);
+//The actual password is never stored. Passport-local-mongoose hashes the password and stores fields like hash and salt in the database. During login, the entered password is hashed again and compared with the stored hash.
 //Index route
 app.get("/listings",async (req,res)=>{
 let alldata=await Listings.find({});
@@ -108,14 +163,13 @@ await review.save();
 await listings.save();
 res.redirect(`/listings/${id}`);
 }))
-
 //route for delete review
-app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res, next) => {
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
     let { id, reviewId } = req.params;
     await Listings.findByIdAndUpdate(id, {
         $pull: { reviews: reviewId }
     });
-await Review.findByIdAndDelete(id);
+    await Review.findByIdAndDelete(reviewId);
     res.redirect(`/listings/${id}`);
 }));
 //Delete route
@@ -124,6 +178,17 @@ app.delete("/listings/:id",wrapAsync(async (req, res) => {
     await Listings.findByIdAndDelete(id);
     res.redirect("/listings");
 }));
+//example of cookies-additional information that is stored in the browser(. Login/Logout system)
+app.get("/getcookies",(req,res)=>{
+    //sendint the cookie
+    res.cookie("greet", "hello", { signed: true });
+    res.send("transferred u some cookies");
+})
+//signed cookies(tamper proof cookie)
+app.get("/usecookies",(req,res)=>{
+    res.send(req.signedCookies.greet);
+})
+
 //400-Bad reqt
 app.use((req, res, next) => {
     next(new ExpressError(404, "Page not found"));
@@ -133,5 +198,4 @@ app.use((err, req, res, next) => {
     let { statusCode = 500, message = "Something went wrong!!" } = err;
     res.status(statusCode).render("error.ejs", { message });
 });
-
 
