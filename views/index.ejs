@@ -1,62 +1,89 @@
 <% layout("/layouts/boilerplate") %>
 
-<div class="container">
+<div class="container-fluid px-4">
 
-    <div class="d-flex justify-content-between align-items-center my-4">
-
-        <h1>All Listings</h1>
-
-        <a href="/listings/new" class="btn btn-danger">
-            <i class="fa-solid fa-plus"></i>
-            Add New Listing
-        </a>
-
+  <%# Category Filter Bar %>
+  <div class="d-flex gap-4 my-4 overflow-auto pb-2" id="categoryBar" style="scrollbar-width: none;">
+    <div class="category-item text-center" onclick="filterCategory('all')">
+      <div class="cat-icon">🌍</div>
+      <div class="cat-label">All</div>
     </div>
+    <div class="category-item text-center" onclick="filterCategory('beach')">
+      <div class="cat-icon">🏖️</div>
+      <div class="cat-label">Beach</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('mountain')">
+      <div class="cat-icon">🏔️</div>
+      <div class="cat-label">Mountains</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('city')">
+      <div class="cat-icon">🏙️</div>
+      <div class="cat-label">City</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('tropical')">
+      <div class="cat-icon">🌴</div>
+      <div class="cat-label">Tropical</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('cabin')">
+      <div class="cat-icon">🏡</div>
+      <div class="cat-label">Cabins</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('lake')">
+      <div class="cat-icon">🏞️</div>
+      <div class="cat-label">Lakes</div>
+    </div>
+    <div class="category-item text-center" onclick="filterCategory('luxury')">
+      <div class="cat-icon">💎</div>
+      <div class="cat-label">Luxury</div>
+    </div>
+  </div>
 
-    <div class="row">
-
-        <% for(let data of alldata){ %>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-
-                <a
-                    href="/listings/<%= data._id %>"
-                    class="text-decoration-none text-dark"
-                >
-
-                    <div class="card listing-card h-100">
-
-                        <img
-                            src="<%= data.image.url %>"
-                            class="card-img-top"
-                            alt="listing image"
-                        >
-
-                        <div class="card-body">
-
-                            <h5 class="card-title">
-                                <%= data.title %>
-                            </h5>
-
-                            <p class="card-text">
-                                ₹ <%= data.price %>
-                            </p>
-
-                            <p class="card-text text-muted">
-                                <%= data.location %>,
-                                <%= data.country %>
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </a>
-
+  <div class="row" id="listingsGrid">
+    <% for(let data of alldata){ %>
+      <div class="col-lg-3 col-md-4 col-sm-6 mb-4 listing-item"
+           data-title="<%= data.title.toLowerCase() %>"
+           data-location="<%= data.location.toLowerCase() %>"
+           data-country="<%= data.country.toLowerCase() %>">
+        <a href="/listings/<%= data._id %>" class="text-decoration-none text-dark">
+          <div class="card listing-card h-100">
+            <img src="<%= data.image.url %>" class="card-img-top" alt="listing image">
+            <div class="card-body">
+              <h5 class="card-title"><%= data.title %></h5>
+              <p class="card-text">₹ <%= data.price %> <span class="text-muted" style="font-size:0.85rem;">/ night</span></p>
+              <p class="card-text text-muted">📍 <%= data.location %>, <%= data.country %></p>
             </div>
-
-        <% } %>
-
-    </div>
+          </div>
+        </a>
+      </div>
+    <% } %>
+  </div>
 
 </div>
+
+<script>
+const keywords = {
+  beach: ['beach', 'coastal', 'malibu', 'shore', 'ocean'],
+  mountain: ['mountain', 'aspen', 'alpine', 'ski', 'peak'],
+  city: ['city', 'downtown', 'urban', 'new york', 'dubai', 'manhattan'],
+  tropical: ['tropical', 'bali', 'hawaii', 'island', 'palm'],
+  cabin: ['cabin', 'log', 'rustic', 'montana', 'forest'],
+  lake: ['lake', 'lakefront', 'river', 'waterfront'],
+  luxury: ['luxury', 'villa', 'resort', 'penthouse', 'mansion'],
+};
+
+function filterCategory(cat) {
+  document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const items = document.querySelectorAll('.listing-item');
+  items.forEach(item => {
+    if (cat === 'all') {
+      item.style.display = 'block';
+      return;
+    }
+    const text = item.dataset.title + ' ' + item.dataset.location + ' ' + item.dataset.country;
+    const match = keywords[cat].some(k => text.includes(k));
+    item.style.display = match ? 'block' : 'none';
+  });
+}
+</script>

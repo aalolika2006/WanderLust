@@ -156,3 +156,20 @@ footer a:hover {
         margin-top: 10px;
     }
 }
+.category-item {
+    cursor: pointer;
+    min-width: 70px;
+    padding: 8px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+}
+.category-item:hover {
+    border-bottom: 2px solid black;
+}
+.category-item.active {
+    border-bottom: 2px solid black;
+    font-weight: bold;
+}
+.cat-icon { font-size: 1.5rem; }
+.cat-label { font-size: 0.75rem; margin-top: 4px; color: #555; }

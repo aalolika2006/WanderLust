@@ -1,21 +1,29 @@
-const express = require("express");//imported express
-const mongoose = require("mongoose");//mongoose
+if(process.env.NODE_ENV!="production"){
+require("dotenv").config();
+}
+const express = require("express");//imported express->Express is the web framework I used to build routes and middleware for my application
+const mongoose = require("mongoose");//mongoose->Mongoose acts as an ODM and lets me define schemas and interact with MongoDB.
 //“The path module in Node.js is used to handle and build file paths in a safe and platform-independent way. It helps avoid issues with different operating systems like Windows and Linux using path.join() to correctly create directory paths.”
 const path = require("path");
 //requiring the model that is going to hold data
-const Listings=require("./Models/listings.js");
-const Review=require("./Models/review.js");
-//require sample data
-const data=require("./init/sample.js");
-// Initialize app
-const app = express();
+const Listings=require("./models/listings.js");//model require(listing)
+const Review=require("./models/review.js");//model require(review)
+const data=require("./init/sample.js");//require sample data
+const User = require("./models/user.js");//require the user model
+const app = express();//create server
+const {storage}=require("./cloudConfig.js");
+// Multer is a middleware in Node.js + Express that is used to handle file uploads,(images) especially when users upload images, PDFs, videos, etc.
+const multer=require("multer");
+//also it will automatically create the uploads folder 
+const upload = multer({ storage });
+//
 // Set EJS as view engine
 app.set("view engine", "ejs");
+const ExpressError = require("./utils/ExpressError");//express error throw
 //require passport
+
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
-//require the user model 
-const User = require("./models/user.js");
 const session = require("express-session");
 //this allows the user to not do multiple times login in the same website
 app.use(session({
@@ -25,10 +33,14 @@ app.use(session({
 }));
 app.use(passport.initialize());//Passport ko activate karta hai.
 app.use(passport.session());//Session se login state maintain karta hai.
+//to check if user is logged in
+app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
+    next();
+});
 passport.use(new LocalStrategy(User.authenticate()));//Username/password verify karta hai.
 passport.serializeUser(User.serializeUser());//User ID ko session me store karta hai.serializeUser() stores the user's ID in the session after login
 passport.deserializeUser(User.deserializeUser());//Session wali ID se user object nikalta hai.deserializeUser() retrieves the complete user information from the database using that ID on subsequent requests.
-const ExpressError = require("./utils/ExpressError");//express error throw
 app.set("views", path.join(__dirname, "views"));
 //“Serve all files inside the public folder directly to the browser.”
 app.use(express.static(path.join(__dirname,"public")));
@@ -47,7 +59,7 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser("mySecretKey"));//this is used for signed cookies
 //Joi is responsible for client side validation(validating the input before it reaches the db)
 const Joi=require("joi");
-//requiring both the validations
+//requiring both the validations->imagine it as a set of rules for our input data
 const { listingSchema, reviewSchema } = require("./schema.js");
 //basic mdb connection
 mongoose.connect("mongodb://127.0.0.1:27017/WanderLust").then(()=>{
@@ -55,6 +67,31 @@ console.log("DB connected");
 }).catch((error)=>{
     console.log(error);
 })
+//privacy route
+app.get("/privacy",(req,res)=>{
+    res.render("layouts/privacy.ejs");
+})
+//terms route
+app.get("/terms",(req,res)=>{
+    res.render("layouts/terms.ejs");
+})
+
+//authentication middleware(to verify user is logged in )
+function isLoggedIn(req,res,next){
+    if(!req.isAuthenticated()){
+        return res.redirect("/login");
+    }
+    next();
+}
+//authorization middleware(edit/delete)
+async function isOwner(req, res, next) {
+    let { id } = req.params;
+    let listing = await Listings.findById(id);
+    if (!listing.owner.equals(req.user._id)) {
+        return res.status(403).send("You are not the owner!");
+    }
+    next();
+}
 let port=3000;//this is our port
 app.listen(port,(req,res)=>{
    console.log("server started");
@@ -67,19 +104,29 @@ app.get("/signup",(req,res)=>{
     res.render("users.ejs");
 })
 //login route(get request)
-app.get("/login",(req,res)=>{
-    res.render("login.ejs");
-})
+app.get("/login", (req, res) => {
+    if (req.isAuthenticated()) {
+        return res.redirect("/listings");
+    }
+    //it renders login.ejs and passes any query parameter like error=1 so the view can display an appropriate login failure message."
+    res.render("login.ejs", {
+        error: req.query.error
+    });
+});
 //signup route(post request)
-app.post("/signup",async(req,res)=>{
+app.post("/signup",async(req,res,next)=>{
     try{
 let{username,email,password}=req.body;
 const newuser=new User({email,username})
 let registered=await User.register(newuser,password);//register used becoz-I am using passport-local-mongoose. The register() method automatically hashes the password using bcrypt, stores the hash and salt securely, and then saves the user. If I used save(), I would need to manually hash the password before storing it.
 console.log(registered);
- res.render("welcome.ejs",{
+//this req.login will ensure us that automatically login takes place just after sign up 
+req.login(registered,(err)=>{
+    if(err)return next(err);
+    return res.render("welcome.ejs",{
             username: registered.username
         });
+})
     }
     catch(err){
     res.render("users.ejs", {
@@ -87,10 +134,11 @@ console.log(registered);
     });
 }
 })
+//login
 app.post(
     "/login",
     passport.authenticate("local", {
-        failureRedirect: "/login"
+        failureRedirect: "/login?error=1"
     }),
     (req, res) => {
         res.render("welcome.ejs", {
@@ -100,71 +148,86 @@ app.post(
 );
 //The actual password is never stored. Passport-local-mongoose hashes the password and stores fields like hash and salt in the database. During login, the entered password is hashed again and compared with the stored hash.
 //Index route
-app.get("/listings",async (req,res)=>{
+app.get("/listings",isLoggedIn,async (req,res)=>{
 let alldata=await Listings.find({});
     res.render("index.ejs",{alldata});
 })
 //New route
-app.get("/listings/new",async(req,res)=>{
+app.get("/listings/new",isLoggedIn,async(req,res)=>{
     res.render("new.ejs");
 })
 //Show.route
-app.get("/listings/:id",async(req,res)=>{
-    let {id}=req.params;
-    let data=await Listings.findById(id).populate("reviews");
-    res.render("show.ejs",{data});
+app.get("/listings/:id", isLoggedIn, async(req, res) => {
+    let {id} = req.params;
+    let data = await Listings.findById(id).populate({
+            path: "reviews",
+            populate: { path: "author" }  //  nested populate
+        }).populate("owner");
+    res.render("show.ejs", {data});
 })
 //Create (post)route
-app.post("/listings", wrapAsync(async (req, res, next) => {
+app.post("/listings",isLoggedIn,upload.single("listings[image]"),wrapAsync(async (req, res, next) => {
     let { error } = listingSchema.validate(req.body);
     if (error) {
         // convert Joi error → ExpressError
         //It returns an error object containing an array of all validation issues.
         throw new ExpressError(400, error.details[0].message);
     }
-    if (!req.body.listings.image || !req.body.listings.image.url) {
+    if (!req.body.listings.image || !req.file) {
         req.body.listings.image = {
             filename: "listingimage",
             url: "https://picsum.photos/600/400"
         };
     }
-   
     let newListing = new Listings(req.body.listings);
+    newListing.image = {
+    filename: req.file.filename,
+    url: req.file.path
+};
+       newListing.owner = req.user._id;
     await newListing.save();
     res.redirect("/listings");
 }));
 //Edit route
-app.get("/listings/:id/edit", wrapAsync(async (req, res,next) => {
+app.get("/listings/:id/edit", isOwner,wrapAsync(async (req, res,next) => {
     let { id } = req.params;
     let listing = await Listings.findById(id);
 
     res.render("edit.ejs", { listing });
 }));
 //update route
-app.put("/listings/:id", wrapAsync(async (req, res,next) => {
+app.put("/listings/:id",upload.single("listing[image]"),isLoggedIn,isOwner,wrapAsync(async (req, res,next) => {
     let { id } = req.params;
      let { error } = listingSchema.validate(req.body);
     if(error)throw new ExpressError(400,error.details[0].message);
-    await Listings.findByIdAndUpdate(
-        id,req.body.listings
+  let listing=  await Listings.findByIdAndUpdate(
+        id,req.body.listing
     );
+    if(typeof req.file!="undefined"){
+    listing.image = {
+        url: req.file.path,
+        filename: req.file.filename,
+    };
+    await listing.save();
+}
     res.redirect("/listings");
 }));
 
 //Route for review
-app.post("/listings/:id/reviews",wrapAsync(async(req,res,next)=>{
+app.post("/listings/:id/reviews",isLoggedIn,wrapAsync(async(req,res,next)=>{
 let { error } = reviewSchema.validate(req.body);
 if(error)throw new ExpressError(400,error.details[0].message);
 let {id}=req.params;
 let listings=await Listings.findById(req.params.id).populate("reviews");
 let review=new Review(req.body.review);
+review.author = req.user._id;
 listings.reviews.push(review);
 await review.save();
 await listings.save();
 res.redirect(`/listings/${id}`);
 }))
 //route for delete review
-app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
+app.delete("/listings/:id/reviews/:reviewId", isLoggedIn,wrapAsync(async (req, res) => {
     let { id, reviewId } = req.params;
     await Listings.findByIdAndUpdate(id, {
         $pull: { reviews: reviewId }
@@ -173,7 +236,7 @@ app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
     res.redirect(`/listings/${id}`);
 }));
 //Delete route
-app.delete("/listings/:id",wrapAsync(async (req, res) => {
+app.delete("/listings/:id",wrapAsync(isOwner),wrapAsync(async (req, res) => {
     let { id } = req.params;
     await Listings.findByIdAndDelete(id);
     res.redirect("/listings");
@@ -188,7 +251,15 @@ app.get("/getcookies",(req,res)=>{
 app.get("/usecookies",(req,res)=>{
     res.send(req.signedCookies.greet);
 })
-
+//logout route->Logout in Passport.js is handled using req.logout(), which removes the user session and clears req.user.
+    app.get("/logout", (req, res, next) => {
+    req.logout(function(err) {
+        if (err) {
+            return next(err);
+        }
+        res.redirect("/listings");
+    });
+});
 //400-Bad reqt
 app.use((req, res, next) => {
     next(new ExpressError(404, "Page not found"));
@@ -198,4 +269,3 @@ app.use((err, req, res, next) => {
     let { statusCode = 500, message = "Something went wrong!!" } = err;
     res.status(statusCode).render("error.ejs", { message });
 });
-

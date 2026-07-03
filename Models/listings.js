@@ -24,13 +24,16 @@ const listingSchema=new mongoose.Schema({
     reviews:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Review"
-    }]
-
+    }],
+owner:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"User"
+}
 })
 const Review=require("./review")
-// Cascade delete reviews
+// Cascade delete reviews->Parent delete hua to usse related child records bhi automatically delete ho jayein.
 //here we r using the post mongoosemiddleware- if listing is deleted post that deletion
-//here listing is the data of the deleted document  
+//here listing parameter is the data of the deleted document  
 listingSchema.post("findOneAndDelete", async (listing) => {
     if (listing) {
       //Jitne bhi reviews ki ID is array mein hai, sab delete kar do.

@@ -1,5 +1,5 @@
 <% layout("/layouts/boilerplate") %>
-<link href="/review.css"relation="stylesheet"></style>
+<link href="/review.css" rel="stylesheet">
 <div class="container mt-4">
 
     <div class="card shadow-sm mx-auto" style="max-width: 700px;">
@@ -12,7 +12,9 @@
         <div class="card-body">
 
             <h2 class="card-title"><%= data.title %></h2>
-
+<% if(data.owner) { %>
+    <i><%= data.owner.username %></i>
+<% } %>
             <p class="card-text text-muted">
                 <%= data.description %>
             </p>
@@ -24,7 +26,7 @@
             <p><b>Country:</b> <%= data.country %></p>
 
             <div class="d-flex gap-2 mt-3">
-
+<% if(currentUser && data.owner && currentUser._id.equals(data.owner._id)) { %>
                 <a href="/listings/<%= data._id %>/edit" 
                    class="btn btn-warning rounded-pill px-4 shadow-sm">
                     Edit
@@ -35,7 +37,7 @@
                         Delete
                     </button>
                 </form>
-
+<%}%>
             </div>
         </div>
     </div>
@@ -44,6 +46,7 @@
 <div class="row mt-3">
   <div class="col-md-8 offset-md-2">
     <h4>Leave a Review</h4>
+    
     <form action="/listings/<%= data._id %>/reviews" method="POST">
       <!-- Rating -->
       
@@ -118,7 +121,13 @@
                     </div>
                    <form action="/listings/<%= data._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
                     <br> 
+                     <% if(review.author) { %>
+        &nbsp;•&nbsp; ✍️ <%= review.author.username %>
+    <% } %>
+    
+                    <% if(currentUser && review.author && currentUser._id.equals(review.author._id)) { %>
     <button class="btn btn-sm btn-danger">Delete</button>
+    <%}%>
 </form>
                 </div>
             </div>

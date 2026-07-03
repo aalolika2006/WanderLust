@@ -12,7 +12,11 @@ const reviewSchema=new mongooose.Schema({
         type:Date,
         default:Date.now()
     }
-
+,
+author: {                         
+        type: mongooose.Schema.Types.ObjectId,
+        ref: "User"
+    }
 })
 module.exports=mongooose.model("Review",reviewSchema);
 //this is my review schema and it is also passed as an key:value to my listing schema also. this is the child of out listing schema model
