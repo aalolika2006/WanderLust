@@ -11,10 +11,10 @@
       <div class="mb-3">
         <label class="form-label" >Title</label>
        
-        <input id="title" type="text" name="listings[title]" class="form-control" required>
+        <input id="title" type="text" name="listing[title]" class="form-control" required>
       </div>
 
-    <textarea id="description" name="listings[description]" class="form-control" rows="4" required></textarea>
+    <textarea id="description" name="listing[description]" class="form-control" rows="4" required></textarea>
 
 <button
     type="button"
@@ -25,28 +25,28 @@
 
       <div class="mb-3">
         <label class="form-label">Image URL</label>
-        <input type="text" name="listings[image][url]" class="form-control">
+        <input type="text" name="listing[image][url]" class="form-control">
       </div>
    <div class="mb-3">
         <label class="form-label">Upload Image</label>
-        <input type="file" name="listings[image]" class="form-control">
+        <input type="file" name="listing[image]" class="form-control">
       </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
           <label class="form-label">Price</label>
-          <input type="number" name="listings[price]" class="form-control" required>
+          <input type="number" name="listing[price]" class="form-control" required>
         </div>
 
         <div class="col-md-6 mb-3">
           <label class="form-label">Country</label>
-          <input type="text" name="listings[country]" class="form-control" required>
+          <input type="text" name="listing[country]" class="form-control" required>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label" >Location</label>
-        <input id="location" type="text" name="listings[location]" class="form-control" required>
+        <input id="location" type="text" name="listing[location]" class="form-control" required>
       </div>
 
       <button class="btn btn-danger w-100 rounded-pill">
