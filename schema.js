@@ -1,7 +1,7 @@
 //this is for the server side validation of data
 const Joi=require("joi");
 //this if for out form associated with listings
-const listingSchema = Joi.object({listings: Joi.object({    
+const listingSchema = Joi.object({listing: Joi.object({    
   title: Joi.string()
     .min(5)
     .max(100)

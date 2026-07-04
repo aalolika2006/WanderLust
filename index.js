@@ -25,16 +25,28 @@ const upload = multer({ storage });
 app.set("view engine", "ejs");
 const ExpressError = require("./utils/ExpressError");//express error throw
 //require passport
-
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const session = require("express-session");
+const dburl=process.env.CONNECTION;
+const {MongoStore}=require("connect-mongo");
+const store=MongoStore.create({
+    mongoUrl:dburl,
+    crypto:{
+        secret: "mysupersecretcode"
+    },
+    touchAfter: 24*3600
+})
 //this allows the user to not do multiple times login in the same website
 app.use(session({
+    store:store,
     secret: "mysupersecretcode",
     resave: false,
     saveUninitialized: false
 }));
+store.on("error",(err)=>{
+console.log("error in mongo session store",err);
+})
 app.use(passport.initialize());//Passport ko activate karta hai.
 app.use(passport.session());//Session se login state maintain karta hai.
 //to check if user is logged in
@@ -66,7 +78,12 @@ const Joi=require("joi");
 //requiring both the validations->imagine it as a set of rules for our input data
 const { listingSchema, reviewSchema } = require("./schema.js");
 //basic mdb connection
-mongoose.connect("mongodb://127.0.0.1:27017/WanderLust").then(()=>{
+// const mongo="mongodb://127.0.0.1:27017/WanderLust";
+
+async function main(){
+    await mongoose.connect(dburl);
+}
+main().then(()=>{
 console.log("DB connected");
 }).catch((error)=>{
     console.log(error);
