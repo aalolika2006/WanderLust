@@ -30,7 +30,7 @@ const LocalStrategy = require("passport-local");
 const session = require("express-session");
 const dburl=process.env.CONNECTION;
 const {MongoStore}=require("connect-mongo");
-const store=Mongotore.create({
+const store=MongoStore.create({
     mongoUrl:dburl,
     crypto:{
         secret: "mysupersecretcode"
