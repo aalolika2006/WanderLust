@@ -7,6 +7,12 @@ email:{
     type: String,
     required:true
 },
+wishlist: [
+    {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Listing",
+    },
+],
 })
 UserSchema.plugin(passportLocalMongoose);//it will automatically generate password and username for user
 module.exports = mongoose.model("User", UserSchema);

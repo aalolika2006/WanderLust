@@ -9,15 +9,19 @@
     <form action="/listings" method="POST" class="row g-3 needs-validation" novalidate enctype="multipart/form-data">
 
       <div class="mb-3">
-        <label class="form-label">Title</label>
+        <label class="form-label" >Title</label>
        
-        <input type="text" name="listings[title]" class="form-control" required>
+        <input id="title" type="text" name="listings[title]" class="form-control" required>
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Description</label>
-        <textarea name="listings[description]" class="form-control" rows="3" required></textarea>
-      </div>
+    <textarea id="description" name="listings[description]" class="form-control" rows="4" required></textarea>
+
+<button
+    type="button"
+    id="generateBtn"
+    class="btn btn-outline-danger mt-2">
+    ✨ Generate with AI
+</button>
 
       <div class="mb-3">
         <label class="form-label">Image URL</label>
@@ -41,8 +45,8 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Location</label>
-        <input type="text" name="listings[location]" class="form-control" required>
+        <label class="form-label" >Location</label>
+        <input id="location" type="text" name="listings[location]" class="form-control" required>
       </div>
 
       <button class="btn btn-danger w-100 rounded-pill">
@@ -50,6 +54,42 @@
       </button>
 
     </form>
+    <script>
+
+document.getElementById("generateBtn").addEventListener("click", async () => {
+
+    const title = document.getElementById("title").value;
+    const location = document.getElementById("location").value;
+
+    if (!title || !location) {
+        alert("Please enter title and location first.");
+        return;
+    }
+
+    const btn = document.getElementById("generateBtn");
+
+    btn.innerText = "Generating...";
+
+    const res = await fetch("/generate-description", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            title,
+            location,
+        }),
+    });
+
+    const data = await res.json();
+
+    document.getElementById("description").value = data.description;
+
+    btn.innerText = "✨ Generate with AI";
+
+});
+
+</script>
 <script src="/valid.js"></script>
   </div>
 </div>

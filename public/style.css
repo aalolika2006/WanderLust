@@ -173,3 +173,8 @@ footer a:hover {
 }
 .cat-icon { font-size: 1.5rem; }
 .cat-label { font-size: 0.75rem; margin-top: 4px; color: #555; }
+#map{
+    height:400px;
+    width:100%;
+    border-radius:12px;
+}

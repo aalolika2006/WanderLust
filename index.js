@@ -1,6 +1,11 @@
 if(process.env.NODE_ENV!="production"){
 require("dotenv").config();
 }
+// GENERATE DESCRIPTION REQUIREMENTS 
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+//used this for maps
+const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
 const express = require("express");//imported express->Express is the web framework I used to build routes and middleware for my application
 const mongoose = require("mongoose");//mongoose->Mongoose acts as an ODM and lets me define schemas and interact with MongoDB.
 //“The path module in Node.js is used to handle and build file paths in a safe and platform-independent way. It helps avoid issues with different operating systems like Windows and Linux using path.join() to correctly create directory paths.”
@@ -16,8 +21,7 @@ const {storage}=require("./cloudConfig.js");
 const multer=require("multer");
 //also it will automatically create the uploads folder 
 const upload = multer({ storage });
-//
-// Set EJS as view engine
+// Set EJS as view engi
 app.set("view engine", "ejs");
 const ExpressError = require("./utils/ExpressError");//express error throw
 //require passport
@@ -163,29 +167,105 @@ app.get("/listings/:id", isLoggedIn, async(req, res) => {
             path: "reviews",
             populate: { path: "author" }  //  nested populate
         }).populate("owner");
-    res.render("show.ejs", {data});
+    const user = await User.findById(req.user._id);
+    const isWishlisted = user.wishlist.includes(data._id);
+    res.render("show.ejs", {
+        data,
+        isWishlisted,
+    });
 })
+//wishlist route
+// Add/Remove Wishlist (Toggle)
+app.post("/listings/:id/wishlist", isLoggedIn, async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(req.user._id);
+    // Check if listing already exists in wishlist
+    const exists = user.wishlist.includes(id);
+    if (exists) {
+        // Remove from wishlist
+        user.wishlist.pull(id);
+    } else {
+        // Add to wishlist
+        user.wishlist.push(id);
+    }
+    await user.save();
+    res.redirect(`/listings/${id}`);
+});
+//wishlist 
+app.get("/wishlist", isLoggedIn, async (req, res) => {
+    const user = await User.findById(req.user._id).populate("wishlist");
+    res.render("wishlist.ejs", {
+        listings: user.wishlist,
+    });
+});
+//remove wishlist route 
+app.post("/wishlist/:id/remove", isLoggedIn, async (req, res) => {
+    const { id } = req.params;
+    await User.findByIdAndUpdate(req.user._id, {
+        $pull: {
+            wishlist: id
+        }
+    });
+    res.redirect("/wishlist");
+});
+//gemini description routes 
+app.post("/generate-description", isLoggedIn, async (req, res) => {
+    try {
+        const { title, location } = req.body;
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+        });
+        const prompt = `Write an attractive Airbnb listing description in 80-100 words.
+Title: ${title}
+Location: ${location}function isLoggedIn(req,res,next){
+    if(!req.isAuthenticated()){
+        return res.redirect("/login");
+    }
+    next();
+}
+Only return the description.`;
+        const result = await model.generateContent(prompt);
+        const description = result.response.text();
+        res.json({ description });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: "Failed to generate description",
+        });
+    }
+});
 //Create (post)route
-app.post("/listings",isLoggedIn,upload.single("listings[image]"),wrapAsync(async (req, res, next) => {
+app.post("/listings",
+isLoggedIn,
+upload.single("listings[image]"),
+wrapAsync(async (req, res) => {
+
     let { error } = listingSchema.validate(req.body);
     if (error) {
-        // convert Joi error → ExpressError
-        //It returns an error object containing an array of all validation issues.
         throw new ExpressError(400, error.details[0].message);
     }
-    if (!req.body.listings.image || !req.file) {
-        req.body.listings.image = {
+
+    let newListing = new Listings(req.body.listings);
+
+    // IMAGE SAFE HANDLING
+    if (req.file) {
+        newListing.image = {
+            filename: req.file.filename,
+            url: req.file.path
+        };
+    } else {
+        newListing.image = {
             filename: "listingimage",
             url: "https://picsum.photos/600/400"
         };
     }
-    let newListing = new Listings(req.body.listings);
-    newListing.image = {
-    filename: req.file.filename,
-    url: req.file.path
-};
-       newListing.owner = req.user._id;
+
+
+    newListing.owner = req.user._id;
+
     await newListing.save();
+
     res.redirect("/listings");
 }));
 //Edit route

@@ -15,6 +15,8 @@ const listingSchema=new mongoose.Schema({
         default: "https://picsum.photos/600/400"
     }
 },
+ 
+
     price:{
         type: Number,
         min:0,
@@ -25,6 +27,7 @@ const listingSchema=new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Review"
     }],
+ 
 owner:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"User"

@@ -10,6 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@mapbox/mapbox-sdk": "^0.16.2",
     "cloudinary": "^2.10.0",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.7",
