@@ -118,7 +118,7 @@ app.listen(port,(req,res)=>{
    console.log("server started");
 })
 app.get("/",(req,res)=>{
-    res.render("/listings");
+    res.redirect("/listings");
 })
 //signup route(get request)
 app.get("/signup",(req,res)=>{
@@ -255,7 +255,7 @@ Only return the description.`;
 //Create (post)route
 app.post("/listings",
 isLoggedIn,
-upload.single("listings[image]"),
+upload.single("listing[image]"),
 wrapAsync(async (req, res) => {
 
     let { error } = listingSchema.validate(req.body);
@@ -263,7 +263,7 @@ wrapAsync(async (req, res) => {
         throw new ExpressError(400, error.details[0].message);
     }
 
-    let newListing = new Listings(req.body.listings);
+    let newListing = new Listings(req.body.listing);
 
     // IMAGE SAFE HANDLING
     if (req.file) {
